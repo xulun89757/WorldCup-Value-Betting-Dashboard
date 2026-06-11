@@ -2,6 +2,7 @@ import type { Match, Selection } from "@/types/match";
 import type { MatchOdds } from "@/types/odds";
 
 const resultSelections: Selection[] = ["home", "draw", "away"];
+const oddsKickoffToleranceMs = 6 * 60 * 60 * 1000;
 
 function normalizeName(value: string | null | undefined) {
   if (!value) {
@@ -37,7 +38,7 @@ function isSameKickoff(match: Match, odds: MatchOdds) {
     return true;
   }
 
-  return Math.abs(matchTime - oddsTime) <= 36 * 60 * 60 * 1000;
+  return Math.abs(matchTime - oddsTime) <= oddsKickoffToleranceMs;
 }
 
 export function isOddsForMatch(match: Match, odds: MatchOdds) {
