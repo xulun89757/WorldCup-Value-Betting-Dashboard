@@ -1,0 +1,181 @@
+[
+  {
+    "id": "match-001",
+    "homeTeam": "France",
+    "awayTeam": "Denmark",
+    "homeElo": 1984,
+    "awayElo": 1885,
+    "homeOdds": 2.26,
+    "drawOdds": 3.22,
+    "awayOdds": 3.35,
+    "startTime": "2026-06-11T19:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "热门球队过热", "severity": "normal" }
+    ]
+  },
+  {
+    "id": "match-002",
+    "homeTeam": "Brazil",
+    "awayTeam": "Japan",
+    "homeElo": 2016,
+    "awayElo": 1812,
+    "homeOdds": 1.58,
+    "drawOdds": 4.1,
+    "awayOdds": 6.2,
+    "startTime": "2026-06-11T22:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "赔率过低", "severity": "high" }
+    ]
+  },
+  {
+    "id": "match-003",
+    "homeTeam": "Argentina",
+    "awayTeam": "Portugal",
+    "homeElo": 1992,
+    "awayElo": 1948,
+    "homeOdds": 2.62,
+    "drawOdds": 3.05,
+    "awayOdds": 2.86,
+    "startTime": "2026-06-12T02:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "实力接近", "severity": "normal" },
+      { "label": "平局波动较高", "severity": "normal" }
+    ]
+  },
+  {
+    "id": "match-004",
+    "homeTeam": "England",
+    "awayTeam": "USA",
+    "homeElo": 1958,
+    "awayElo": 1819,
+    "homeOdds": 1.92,
+    "drawOdds": 3.55,
+    "awayOdds": 4.4,
+    "startTime": "2026-06-12T19:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "热门球队过热", "severity": "normal" }
+    ]
+  },
+  {
+    "id": "match-005",
+    "homeTeam": "Germany",
+    "awayTeam": "Croatia",
+    "homeElo": 1906,
+    "awayElo": 1858,
+    "homeOdds": 2.08,
+    "drawOdds": 3.4,
+    "awayOdds": 3.75,
+    "startTime": "2026-06-12T22:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "阵容信息不完整", "severity": "high" }
+    ]
+  },
+  {
+    "id": "match-006",
+    "homeTeam": "Spain",
+    "awayTeam": "Netherlands",
+    "homeElo": 1962,
+    "awayElo": 1928,
+    "homeOdds": 2.72,
+    "drawOdds": 3.1,
+    "awayOdds": 2.72,
+    "startTime": "2026-06-13T02:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "实力接近", "severity": "normal" }
+    ]
+  },
+  {
+    "id": "match-007",
+    "homeTeam": "Mexico",
+    "awayTeam": "Poland",
+    "homeElo": 1795,
+    "awayElo": 1778,
+    "homeOdds": 2.94,
+    "drawOdds": 3.05,
+    "awayOdds": 2.7,
+    "startTime": "2026-06-13T19:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "平局波动较高", "severity": "normal" }
+    ]
+  },
+  {
+    "id": "match-008",
+    "homeTeam": "Morocco",
+    "awayTeam": "Uruguay",
+    "homeElo": 1824,
+    "awayElo": 1864,
+    "homeOdds": 3.3,
+    "drawOdds": 3.0,
+    "awayOdds": 2.42,
+    "startTime": "2026-06-13T22:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "模型优势很小", "severity": "high" }
+    ]
+  },
+  {
+    "id": "match-009",
+    "homeTeam": "Belgium",
+    "awayTeam": "Switzerland",
+    "homeElo": 1882,
+    "awayElo": 1836,
+    "homeOdds": 2.22,
+    "drawOdds": 3.18,
+    "awayOdds": 3.45,
+    "startTime": "2026-06-14T02:00:00+08:00",
+    "stage": "Group Stage",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": []
+  },
+  {
+    "id": "match-010",
+    "homeTeam": "Italy",
+    "awayTeam": "Senegal",
+    "homeElo": 1878,
+    "awayElo": 1798,
+    "homeOdds": 2.34,
+    "drawOdds": 3.12,
+    "awayOdds": 3.3,
+    "startTime": "2026-06-14T19:00:00+08:00",
+    "stage": "Round of 16",
+    "status": "scheduled",
+    "homeScore": null,
+    "awayScore": null,
+    "riskFactors": [
+      { "label": "淘汰赛保守策略", "severity": "normal" }
+    ]
+  }
+]

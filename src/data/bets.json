@@ -1,0 +1,54 @@
+[
+  {
+    "id": "bet-001",
+    "matchId": "match-001",
+    "selection": "home",
+    "stake": 20,
+    "odds": 2.26,
+    "status": "settled",
+    "result": "win",
+    "profit": 25.2,
+    "placedAt": "2026-06-09T18:10:00+08:00",
+    "settledAt": "2026-06-10T00:15:00+08:00",
+    "notes": "ELO edge clear, stake kept small."
+  },
+  {
+    "id": "bet-002",
+    "matchId": "match-003",
+    "selection": "draw",
+    "stake": 15,
+    "odds": 3.05,
+    "status": "settled",
+    "result": "loss",
+    "profit": -15,
+    "placedAt": "2026-06-09T19:20:00+08:00",
+    "settledAt": "2026-06-10T02:05:00+08:00",
+    "notes": "Close teams, draw value did not land."
+  },
+  {
+    "id": "bet-003",
+    "matchId": "match-004",
+    "selection": "home",
+    "stake": 18,
+    "odds": 1.92,
+    "status": "settled",
+    "result": "win",
+    "profit": 16.56,
+    "placedAt": "2026-06-10T11:30:00+08:00",
+    "settledAt": "2026-06-10T23:45:00+08:00",
+    "notes": "Moderate edge, avoided increasing stake."
+  },
+  {
+    "id": "bet-004",
+    "matchId": "match-007",
+    "selection": "draw",
+    "stake": 10,
+    "odds": 3.05,
+    "status": "pending",
+    "result": "pending",
+    "profit": 0,
+    "placedAt": "2026-06-10T15:00:00+08:00",
+    "settledAt": null,
+    "notes": "Entertainment bet on draw value."
+  }
+]

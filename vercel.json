@@ -1,0 +1,16 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "functions": {
+    "src/app/api/ai/match-analysis/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/football-data/matches/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/the-odds-api/odds/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
