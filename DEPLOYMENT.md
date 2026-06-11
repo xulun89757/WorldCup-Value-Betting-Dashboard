@@ -124,8 +124,9 @@ After Vercel deploys:
 6. Sync odds.
 7. Open a match detail page.
 8. Generate one AI analysis.
-9. Add one bankroll record.
-10. Export a backup.
+9. Open `/research` and generate one pre-match research report.
+10. Add one bankroll record.
+11. Export a backup.
 
 ## 7. Important Production Notes
 

@@ -1,11 +1,11 @@
 export const appConfig = {
-  appVersion: "V0.4.0",
+  appVersion: "V0.6.0",
   modelVersion: "elo-poisson-v0.4.0",
   dataSource: {
     matches: "Mock Data + Football Data API",
     bankroll: "localStorage",
     odds: "Mock + Manual + The Odds API 准备中",
-    apiStatus: "赛程/比分 API、赔率 API 已接入；AI 分析进入 V0.4",
+    apiStatus: "赛程/比分 API、赔率 API 已接入；AI 赛前研究进入 V0.6",
   },
   oddsApi: {
     provider: "The Odds API",

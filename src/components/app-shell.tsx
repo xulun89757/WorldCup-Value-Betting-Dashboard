@@ -6,6 +6,7 @@ import {
   Goal,
   LayoutDashboard,
   LogOut,
+  SearchCheck,
   RotateCcw,
   Settings,
 } from "lucide-react";
@@ -13,6 +14,7 @@ import {
 const navItems = [
   { href: "/", label: "总览", icon: LayoutDashboard },
   { href: "/matches", label: "比赛", icon: CalendarDays },
+  { href: "/research", label: "研究", icon: SearchCheck },
   { href: "/bankroll", label: "资金", icon: Banknote },
   { href: "/review", label: "复盘", icon: RotateCcw },
   { href: "/manual", label: "手册", icon: BookOpen },
