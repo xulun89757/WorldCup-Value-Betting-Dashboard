@@ -88,6 +88,54 @@ function formatOdds(value: number | null) {
   return value.toFixed(2);
 }
 
+function truncate(value: string, length = 500) {
+  return value.length > length ? `${value.slice(0, length)}...` : value;
+}
+
+function formatMemory(payload: ResearchRequest) {
+  const profiles = payload.memory?.teamProfiles ?? [];
+  const records = payload.memory?.researchRecords ?? [];
+
+  const profileRows =
+    profiles.length === 0
+      ? "暂无球队档案"
+      : profiles
+          .map(
+            (profile) => `
+- ${profile.teamName}
+  评分/排名：${profile.rating || "未填写"}
+  近况：${truncate(profile.recentForm || "未填写", 260)}
+  伤停：${truncate(profile.injuries || "未填写", 220)}
+  战意：${truncate(profile.motivation || "未填写", 220)}
+  备注：${truncate(profile.notes || "未填写", 220)}
+  更新时间：${profile.updatedAt}`,
+          )
+          .join("\n");
+
+  const recordRows =
+    records.length === 0
+      ? "暂无历史研究记录"
+      : records
+          .map(
+            (record) => `
+- ${record.homeTeam} vs ${record.awayTeam}（${record.createdAt}）
+  赛事：${record.competition || "未填写"}
+  赔率：${record.oddsSummary || "未填写"}
+  概率：${record.probabilitySummary || "未填写"}
+  当时备注：${truncate(record.notes || "未填写", 180)}
+  当时 AI 结论摘要：${truncate(record.analysisText || "未填写", 320)}`,
+          )
+          .join("\n");
+
+  return `
+已保存球队档案：
+${profileRows}
+
+历史研究记录：
+${recordRows}
+`;
+}
+
 function buildPrompt(payload: ResearchRequest) {
   return `
 你是一个谨慎、重视风控的足球赛前研究助手。你的任务是帮用户整理下注前信息，并给出纪律化决策建议。
@@ -98,6 +146,7 @@ function buildPrompt(payload: ResearchRequest) {
 - 你必须同时考虑赔率是否划算，而不是只看谁更可能赢。
 - 如果信息不足、赔率太低、价值差不够或风险太高，要明确建议观望或放弃。
 - 如果建议下注，也只能建议小额、可承受亏损范围内，不允许鼓励加注、追单、梭哈。
+- 你需要参考历史研究档案，但不能盲信旧档案。若旧档案和本场新输入冲突，以本场新输入为准，并指出冲突。
 
 比赛信息：
 - 主队：${payload.homeTeam}
@@ -129,6 +178,9 @@ function buildPrompt(payload: ResearchRequest) {
 - 风险偏好：${payload.riskPreference || "保守"}
 - 其他备注：${payload.notes || "未填写"}
 
+研究档案记忆：
+${formatMemory(payload)}
+
 请按下面结构输出中文分析：
 
 1. 赛前结论
@@ -151,6 +203,9 @@ function buildPrompt(payload: ResearchRequest) {
 
 7. 复盘记录
 告诉用户这场赛后应该记录哪些信息，方便以后验证模型。
+
+8. 使用了哪些历史档案
+简短说明你参考了哪些球队档案或历史研究。如果没有可用档案，就说明“暂无可参考历史档案”。
 `;
 }
 

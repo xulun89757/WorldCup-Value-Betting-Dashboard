@@ -1,8 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Brain, Calculator, ClipboardList, Loader2, ShieldAlert } from "lucide-react";
+import {
+  Brain,
+  Calculator,
+  ClipboardList,
+  Database,
+  Loader2,
+  Save,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react";
 import type { ResearchRequest, ResearchResponse } from "@/types/research";
+import { useResearchMemory } from "@/lib/use-research-memory";
 import { formatPercent, formatSignedPercent } from "@/lib/utils";
 
 type FormState = {
@@ -73,6 +83,14 @@ function impliedProbability(odds: number | null) {
   return 1 / odds;
 }
 
+function truncate(value: string, length = 180) {
+  return value.length > length ? `${value.slice(0, length)}...` : value;
+}
+
+function formatOptionalPercent(value: number | null) {
+  return value == null ? "-" : formatPercent(value);
+}
+
 function Field({
   label,
   value,
@@ -129,6 +147,16 @@ export function ResearchClient() {
   const [analysisText, setAnalysisText] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const {
+    teamProfiles,
+    researchRecords,
+    memory,
+    upsertTeamProfile,
+    addResearchRecord,
+    clearResearchRecords,
+    deleteTeamProfile,
+    getTeamProfile,
+  } = useResearchMemory();
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -170,16 +198,22 @@ export function ResearchClient() {
     form.homeOdds,
   ]);
 
-  async function generateAnalysis() {
-    if (!form.homeTeam.trim() || !form.awayTeam.trim()) {
-      setStatus("请先填写主队和客队。");
-      return;
-    }
+  const homeProfile = getTeamProfile(form.homeTeam);
+  const awayProfile = getTeamProfile(form.awayTeam);
+  const relevantRecords = researchRecords
+    .filter((record) => {
+      const text = `${record.homeTeam} ${record.awayTeam}`.toLowerCase();
+      const home = form.homeTeam.trim().toLowerCase();
+      const away = form.awayTeam.trim().toLowerCase();
 
-    setIsLoading(true);
-    setStatus("AI 正在整理赛前信息。");
+      return Boolean(
+        (home && text.includes(home)) || (away && text.includes(away)),
+      );
+    })
+    .slice(0, 5);
 
-    const payload: ResearchRequest = {
+  function buildPayload(): ResearchRequest {
+    return {
       homeTeam: form.homeTeam.trim(),
       awayTeam: form.awayTeam.trim(),
       competition: form.competition.trim(),
@@ -200,7 +234,101 @@ export function ResearchClient() {
       bankrollPlan: form.bankrollPlan.trim(),
       riskPreference: form.riskPreference.trim(),
       notes: form.notes.trim(),
+      memory,
     };
+  }
+
+  function saveTeamProfiles() {
+    if (!form.homeTeam.trim() && !form.awayTeam.trim()) {
+      setStatus("请先填写球队名称，再保存球队档案。");
+      return;
+    }
+
+    if (form.homeTeam.trim()) {
+      upsertTeamProfile({
+        teamName: form.homeTeam,
+        rating: form.homeRating,
+        recentForm: form.recentForm,
+        injuries: form.injuries,
+        motivation: form.motivation,
+        notes: form.notes,
+      });
+    }
+
+    if (form.awayTeam.trim()) {
+      upsertTeamProfile({
+        teamName: form.awayTeam,
+        rating: form.awayRating,
+        recentForm: form.recentForm,
+        injuries: form.injuries,
+        motivation: form.motivation,
+        notes: form.notes,
+      });
+    }
+
+    setStatus("已保存球队档案。以后 AI 分析会参考这些档案。");
+  }
+
+  function applyKnownProfiles() {
+    setForm((current) => {
+      const nextHomeProfile = getTeamProfile(current.homeTeam);
+      const nextAwayProfile = getTeamProfile(current.awayTeam);
+
+      return {
+        ...current,
+        homeRating: nextHomeProfile?.rating || current.homeRating,
+        awayRating: nextAwayProfile?.rating || current.awayRating,
+        recentForm:
+          current.recentForm ||
+          [nextHomeProfile, nextAwayProfile]
+            .map((profile) =>
+              profile?.recentForm
+                ? `${profile.teamName}：${profile.recentForm}`
+                : "",
+            )
+            .filter(Boolean)
+            .join("\n"),
+        injuries:
+          current.injuries ||
+          [nextHomeProfile, nextAwayProfile]
+            .map((profile) =>
+              profile?.injuries ? `${profile.teamName}：${profile.injuries}` : "",
+            )
+            .filter(Boolean)
+            .join("\n"),
+        motivation:
+          current.motivation ||
+          [nextHomeProfile, nextAwayProfile]
+            .map((profile) =>
+              profile?.motivation
+                ? `${profile.teamName}：${profile.motivation}`
+                : "",
+            )
+            .filter(Boolean)
+            .join("\n"),
+        notes:
+          current.notes ||
+          [nextHomeProfile, nextAwayProfile]
+            .map((profile) =>
+              profile?.notes ? `${profile.teamName}：${profile.notes}` : "",
+            )
+            .filter(Boolean)
+            .join("\n"),
+      };
+    });
+    setStatus("已尝试套用已有球队档案。");
+  }
+
+  async function generateAnalysis() {
+    if (!form.homeTeam.trim() || !form.awayTeam.trim()) {
+      setStatus("请先填写主队和客队。");
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus("AI 正在整理赛前信息。");
+
+    const payload = buildPayload();
 
     try {
       const response = await fetch("/api/ai/research", {
@@ -215,8 +343,21 @@ export function ResearchClient() {
         return;
       }
 
-      setAnalysisText(data.analysisText ?? "");
-      setStatus(`已生成赛前研究。模型：${data.model ?? "未知"}`);
+      const nextAnalysisText = data.analysisText ?? "";
+      setAnalysisText(nextAnalysisText);
+      addResearchRecord({
+        homeTeam: payload.homeTeam,
+        awayTeam: payload.awayTeam,
+        competition: payload.competition,
+        startTime: payload.startTime,
+        oddsSummary: `主胜 ${form.homeOdds || "-"} / 平 ${form.drawOdds || "-"} / 客胜 ${form.awayOdds || "-"}`,
+        probabilitySummary: `主胜 ${formatOptionalPercent(payload.homeModelProbability)} / 平 ${formatOptionalPercent(payload.drawModelProbability)} / 客胜 ${formatOptionalPercent(payload.awayModelProbability)}`,
+        notes: payload.notes,
+        analysisText: nextAnalysisText,
+      });
+      setStatus(
+        `已生成赛前研究，并保存到研究记录。模型：${data.model ?? "未知"}`,
+      );
     } catch {
       setStatus("AI 研究失败：网络或服务暂时不可用。");
     } finally {
@@ -243,7 +384,7 @@ export function ResearchClient() {
               赛前研究台
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              把你查到的球队实力、赔率、伤停、近况和赔率变化填进来。AI 会帮你整理成下注前决策报告，但不会保证结果。
+              把你查到的球队实力、赔率、伤停、近况和赔率变化填进来。AI 会参考已保存的球队档案和历史研究记录，但不会保证结果。
             </p>
           </div>
         </div>
@@ -337,7 +478,27 @@ export function ResearchClient() {
 
           <section className="rounded-md border border-border bg-surface">
             <div className="border-b border-border p-5">
-              <h2 className="text-base font-semibold text-text">你查到的信息</h2>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-text">你查到的信息</h2>
+                <div className="flex gap-2">
+                  <button
+                    className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm text-muted transition hover:border-accent hover:text-text"
+                    onClick={applyKnownProfiles}
+                    type="button"
+                  >
+                    <Database size={15} />
+                    套用档案
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm text-muted transition hover:border-accent hover:text-text"
+                    onClick={saveTeamProfiles}
+                    type="button"
+                  >
+                    <Save size={15} />
+                    保存球队档案
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="grid gap-4 p-5 md:grid-cols-2">
               <Field
@@ -443,11 +604,83 @@ export function ResearchClient() {
             </div>
           </section>
 
+          <section className="rounded-md border border-border bg-surface">
+            <div className="border-b border-border p-5">
+              <div className="flex items-center gap-2">
+                <Database className="h-5 w-5 text-accent" />
+                <h2 className="text-base font-semibold text-text">研究档案记忆</h2>
+              </div>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                已保存 {teamProfiles.length} 个球队档案、{researchRecords.length} 条研究记录。生成 AI 分析时会一起参考。
+              </p>
+            </div>
+            <div className="grid gap-4 p-5 lg:grid-cols-2">
+              <div className="rounded-md border border-border bg-panel p-4">
+                <h3 className="text-sm font-semibold text-text">当前比赛相关档案</h3>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-muted">
+                  {[homeProfile, awayProfile].filter(Boolean).length === 0 ? (
+                    <p>还没有匹配到这两支球队的档案。</p>
+                  ) : (
+                    [homeProfile, awayProfile].map((profile) =>
+                      profile ? (
+                        <div key={profile.id} className="rounded-md border border-border p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium text-text">{profile.teamName}</p>
+                            <button
+                              className="text-muted transition hover:text-danger"
+                              onClick={() => deleteTeamProfile(profile.id)}
+                              title="删除档案"
+                              type="button"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                          <p className="mt-1">评分：{profile.rating || "未填写"}</p>
+                          <p className="mt-1">{truncate(profile.recentForm || profile.notes || "暂无备注")}</p>
+                        </div>
+                      ) : null,
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-md border border-border bg-panel p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-text">相关研究记录</h3>
+                  <button
+                    className="text-xs text-muted transition hover:text-danger"
+                    onClick={clearResearchRecords}
+                    type="button"
+                  >
+                    清空记录
+                  </button>
+                </div>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-muted">
+                  {relevantRecords.length === 0 ? (
+                    <p>还没有这两支球队相关的历史研究。</p>
+                  ) : (
+                    relevantRecords.map((record) => (
+                      <div key={record.id} className="rounded-md border border-border p-3">
+                        <p className="font-medium text-text">
+                          {record.homeTeam} vs {record.awayTeam}
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          {new Date(record.createdAt).toLocaleString("zh-CN")}
+                        </p>
+                        <p className="mt-1">{truncate(record.analysisText)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-md border border-border bg-surface p-5">
             <div className="flex items-start gap-2">
               <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
               <p className="text-sm leading-6 text-muted">
-                这个页面的目标是减少冲动下注。AI 会结合你填的信息做赛前研究，但最后仍然需要你复盘验证。
+                这个页面的目标是减少冲动下注。AI 会结合你填的信息和历史档案做赛前研究，但最后仍然需要你复盘验证。
               </p>
             </div>
             <div className="mt-4 flex gap-2">

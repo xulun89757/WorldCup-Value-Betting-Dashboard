@@ -21,6 +21,7 @@ export type ResearchRequest = {
   bankrollPlan: string;
   riskPreference: string;
   notes: string;
+  memory?: ResearchMemory;
 };
 
 export type ResearchResponse = {
@@ -29,4 +30,33 @@ export type ResearchResponse = {
   provider?: string;
   model?: string;
   analysisText?: string;
+};
+
+export type TeamProfile = {
+  id: string;
+  teamName: string;
+  rating: string;
+  recentForm: string;
+  injuries: string;
+  motivation: string;
+  notes: string;
+  updatedAt: string;
+};
+
+export type ResearchRecord = {
+  id: string;
+  createdAt: string;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string;
+  startTime: string;
+  oddsSummary: string;
+  probabilitySummary: string;
+  notes: string;
+  analysisText: string;
+};
+
+export type ResearchMemory = {
+  teamProfiles: TeamProfile[];
+  researchRecords: ResearchRecord[];
 };
