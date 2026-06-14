@@ -1,4 +1,5 @@
 import type { Match } from "@/types/match";
+import type { TotalGoalsSelection } from "@/types/bet";
 import type { ScoreLine, ScorePrediction } from "@/types/score";
 import { clamp } from "./utils";
 
@@ -136,6 +137,19 @@ export function calculateTotalGoalsProbability(
   return getNormalizedScores(match).reduce((sum, score) => {
     const total = score.homeGoals + score.awayGoals;
     const isHit = direction === "over" ? total > point : total < point;
+    return isHit ? sum + score.probability : sum;
+  }, 0);
+}
+
+export function calculateTotalGoalsBucketProbability(
+  match: Match,
+  selection: TotalGoalsSelection,
+) {
+  return getNormalizedScores(match).reduce((sum, score) => {
+    const total = score.homeGoals + score.awayGoals;
+    const isHit =
+      selection === "7plus" ? total >= 7 : total === Number(selection);
+
     return isHit ? sum + score.probability : sum;
   }, 0);
 }

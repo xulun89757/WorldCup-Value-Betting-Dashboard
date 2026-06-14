@@ -27,6 +27,7 @@ function betTitle(bet: Bet | null, matchById: Map<string, Match>) {
     result: "胜平负",
     margin: "净胜球",
     score: "比分",
+    totalGoals: "总进球",
   }[bet.predictionType ?? "result"];
   const selection =
     bet.predictionLabel ??

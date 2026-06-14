@@ -3,13 +3,15 @@ import type { OddsSource } from "@/lib/config";
 
 export type BetStatus = "pending" | "settled";
 export type BetResult = "win" | "loss" | "void" | "pending";
-export type BetPredictionType = "result" | "margin" | "score";
+export type BetPredictionType = "result" | "margin" | "score" | "totalGoals";
 export type MarginSelection =
   | "homeByOne"
   | "homeByTwoPlus"
   | "draw"
   | "awayByOne"
   | "awayByTwoPlus";
+export type TotalGoalsDirection = "over" | "under";
+export type TotalGoalsSelection = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7plus";
 
 export type Bet = {
   id: string;
@@ -17,6 +19,9 @@ export type Bet = {
   selection: Selection;
   predictionType?: BetPredictionType;
   marginSelection?: MarginSelection;
+  totalGoalsSelection?: TotalGoalsSelection;
+  totalGoalsDirection?: TotalGoalsDirection;
+  totalGoalsPoint?: number;
   predictedHomeGoals?: number;
   predictedAwayGoals?: number;
   predictionLabel?: string;

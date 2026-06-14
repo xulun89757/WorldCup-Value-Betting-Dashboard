@@ -23,6 +23,7 @@ import type {
   BetResult,
   BetStatus,
   MarginSelection,
+  TotalGoalsSelection,
 } from "@/types/bet";
 import type { Match, Selection } from "@/types/match";
 import { calculateBankrollMetrics } from "@/lib/bankroll";
@@ -37,6 +38,7 @@ import { calculateImpliedProbability } from "@/lib/odds";
 import {
   calculateExactScoreProbability,
   calculateScorePrediction,
+  calculateTotalGoalsBucketProbability,
 } from "@/lib/score";
 import { useLocalBets } from "@/lib/use-local-bets";
 import { useLocalMatches } from "@/lib/use-local-matches";
@@ -55,6 +57,7 @@ const selections: Selection[] = ["home", "draw", "away"];
 const predictionTypes: Array<{ value: BetPredictionType; label: string }> = [
   { value: "result", label: "胜平负" },
   { value: "margin", label: "净胜球" },
+  { value: "totalGoals", label: "总进球" },
   { value: "score", label: "比分" },
 ];
 const marginSelections: Array<{ value: MarginSelection; label: string }> = [
@@ -72,6 +75,19 @@ const matchStatusFilters = [
 ] as const;
 
 type MatchStatusFilter = (typeof matchStatusFilters)[number]["value"];
+const totalGoalsSelections: Array<{
+  value: TotalGoalsSelection;
+  label: string;
+}> = [
+  { value: "0", label: "0 球" },
+  { value: "1", label: "1 球" },
+  { value: "2", label: "2 球" },
+  { value: "3", label: "3 球" },
+  { value: "4", label: "4 球" },
+  { value: "5", label: "5 球" },
+  { value: "6", label: "6 球" },
+  { value: "7plus", label: "7+ 球" },
+];
 
 function getSelectionOdds(match: Match, selection: Selection) {
   if (selection === "home") {
@@ -111,6 +127,20 @@ function getBetPredictionLabel(bet: Bet, match?: Match) {
       marginSelections.find((item) => item.value === bet.marginSelection)?.label ??
       "净胜球"
     );
+  }
+
+  if (bet.predictionType === "totalGoals") {
+    if (bet.totalGoalsSelection) {
+      return (
+        totalGoalsSelections.find(
+          (item) => item.value === bet.totalGoalsSelection,
+        )?.label ?? "总进球"
+      );
+    }
+
+    return `${bet.totalGoalsDirection === "under" ? "小于" : "大于"} ${
+      bet.totalGoalsPoint ?? 2.5
+    } 球`;
   }
 
   if (!match) {
@@ -159,6 +189,8 @@ export function BankrollManager({
   const [selection, setSelection] = useState<Selection>("home");
   const [marginSelection, setMarginSelection] =
     useState<MarginSelection>("homeByOne");
+  const [totalGoalsSelection, setTotalGoalsSelection] =
+    useState<TotalGoalsSelection>("2");
   const [predictedHomeGoals, setPredictedHomeGoals] = useState("1");
   const [predictedAwayGoals, setPredictedAwayGoals] = useState("0");
   const [stake, setStake] = useState("10");
@@ -235,12 +267,17 @@ export function BankrollManager({
         )[selection]
       : predictionType === "margin" && scorePrediction
         ? scorePrediction.goalMargins[marginSelection]
-        : Number.isInteger(scoreHome) &&
-            Number.isInteger(scoreAway) &&
-            scoreHome >= 0 &&
-            scoreAway >= 0
-          ? calculateExactScoreProbability(selectedMatch, scoreHome, scoreAway)
-          : 0
+        : predictionType === "totalGoals"
+          ? calculateTotalGoalsBucketProbability(
+              selectedMatch,
+              totalGoalsSelection,
+            )
+          : Number.isInteger(scoreHome) &&
+              Number.isInteger(scoreAway) &&
+              scoreHome >= 0 &&
+              scoreAway >= 0
+            ? calculateExactScoreProbability(selectedMatch, scoreHome, scoreAway)
+            : 0
     : 0;
   const marketProbability =
     Number.isFinite(displayOdds) && displayOdds > 1
@@ -292,7 +329,11 @@ export function BankrollManager({
         : predictionType === "margin"
           ? marginSelections.find((item) => item.value === marginSelection)
               ?.label ?? "净胜球"
-          : `${homeScore}-${awayScore}`;
+          : predictionType === "totalGoals"
+            ? totalGoalsSelections.find(
+                (item) => item.value === totalGoalsSelection,
+              )?.label ?? "总进球"
+            : `${homeScore}-${awayScore}`;
 
     const bet: Bet = {
       id: `bet-${Date.now()}`,
@@ -300,6 +341,8 @@ export function BankrollManager({
       selection,
       predictionType,
       marginSelection: predictionType === "margin" ? marginSelection : undefined,
+      totalGoalsSelection:
+        predictionType === "totalGoals" ? totalGoalsSelection : undefined,
       predictedHomeGoals: predictionType === "score" ? homeScore : undefined,
       predictedAwayGoals: predictionType === "score" ? awayScore : undefined,
       predictionLabel,
@@ -594,7 +637,7 @@ export function BankrollManager({
 
             <div className="grid gap-2">
               <p className="text-sm text-muted">预测类型</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {predictionTypes.map((item) => (
                   <button
                     type="button"
@@ -684,6 +727,30 @@ export function BankrollManager({
               </div>
             ) : null}
 
+            {predictionType === "totalGoals" ? (
+              <div className="grid gap-3">
+                <p className="text-sm text-muted">你预测的总进球</p>
+                <label className="grid gap-2 text-sm">
+                  <span className="text-muted">总进球数量</span>
+                  <select
+                    value={totalGoalsSelection}
+                    onChange={(event) =>
+                      setTotalGoalsSelection(
+                        event.target.value as TotalGoalsSelection,
+                      )
+                    }
+                    className="h-10 rounded-md border border-border bg-panel px-3 text-text outline-none focus:border-accent"
+                  >
+                    {totalGoalsSelections.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ) : null}
+
             <div className="grid gap-2">
               <p className="text-sm text-muted">参考</p>
               <div className="rounded-md border border-border bg-panel p-3 text-sm leading-6 text-muted">
@@ -693,7 +760,9 @@ export function BankrollManager({
                     : "胜平负会自动带入当前比赛的主胜、平局或客胜模拟赔率；同步真实赔率后会优先使用 API。"
                   : predictionType === "margin"
                     ? "净胜球赔率暂时需要手动填写。后面会尝试把 API 的让球盘口接进来。"
-                    : "比分赔率暂时需要手动填写。正确比分属于小众盘口，第一版先不强依赖 API。"}
+                    : predictionType === "totalGoals"
+                      ? "总进球赔率暂时需要手动填写。系统会用比分模型估算 0、1、2、3、4、5、6、7+ 各档概率。"
+                      : "比分赔率暂时需要手动填写。正确比分属于小众盘口，第一版先不强依赖 API。"}
               </div>
             </div>
 

@@ -41,6 +41,7 @@ const predictionTypeLabels: Record<BetPredictionType, string> = {
   result: "胜平负",
   margin: "净胜球",
   score: "比分",
+  totalGoals: "总进球",
 };
 const oddsSourceLabels: Record<OddsSource, string> = {
   api: "API 赔率",
@@ -97,7 +98,7 @@ export function buildReview(bets: Bet[], matches: Match[]) {
     },
   );
   const byPredictionType: PredictionTypeReview[] = (
-    ["result", "margin", "score"] as const
+    ["result", "margin", "totalGoals", "score"] as const
   ).map((predictionType) => {
     const group = settled.filter(
       (bet) => (bet.predictionType ?? "result") === predictionType,
