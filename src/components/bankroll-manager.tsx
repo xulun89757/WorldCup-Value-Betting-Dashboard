@@ -44,6 +44,7 @@ import { useLocalOdds } from "@/lib/use-local-odds";
 import {
   cn,
   formatCurrency,
+  formatFullDateTime,
   formatPercent,
   formatSignedPercent,
 } from "@/lib/utils";
@@ -63,6 +64,14 @@ const marginSelections: Array<{ value: MarginSelection; label: string }> = [
   { value: "awayByOne", label: "客队赢 1 球" },
   { value: "awayByTwoPlus", label: "客队赢 2 球以上" },
 ];
+const matchStatusFilters = [
+  { value: "all", label: "全部比赛" },
+  { value: "scheduled", label: "未开始" },
+  { value: "live", label: "进行中" },
+  { value: "finished", label: "已结束" },
+] as const;
+
+type MatchStatusFilter = (typeof matchStatusFilters)[number]["value"];
 
 function getSelectionOdds(match: Match, selection: Selection) {
   if (selection === "home") {
@@ -119,6 +128,18 @@ function getPredictionTypeLabel(type?: BetPredictionType) {
   return predictionTypes.find((item) => item.value === (type ?? "result"))?.label;
 }
 
+function getMatchStatusLabel(match: Match) {
+  if (match.status === "finished") {
+    return `已结束 ${match.homeScore ?? "-"}-${match.awayScore ?? "-"}`;
+  }
+
+  if (match.status === "live") {
+    return "进行中";
+  }
+
+  return "未开始";
+}
+
 export function BankrollManager({
   initialBankroll,
   initialBets,
@@ -143,6 +164,9 @@ export function BankrollManager({
   const [stake, setStake] = useState("10");
   const [manualOdds, setManualOdds] = useState("");
   const [notes, setNotes] = useState("");
+  const [matchSearch, setMatchSearch] = useState("");
+  const [matchStatusFilter, setMatchStatusFilter] =
+    useState<MatchStatusFilter>("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStake, setEditStake] = useState("");
   const [editNotes, setEditNotes] = useState("");
@@ -166,6 +190,25 @@ export function BankrollManager({
     () => activeMatches.map((match) => applyResultOddsToMatch(match, apiOdds)),
     [activeMatches, apiOdds],
   );
+  const matchOptions = useMemo(() => {
+    const normalizedSearch = matchSearch.trim().toLowerCase();
+
+    return activeMatchesWithApiOdds.filter((match) => {
+      const matchesStatus =
+        matchStatusFilter === "all" || match.status === matchStatusFilter;
+      const matchesSearch =
+        !normalizedSearch ||
+        `${match.homeTeam} ${match.awayTeam} ${match.stage}`
+          .toLowerCase()
+          .includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [activeMatchesWithApiOdds, matchSearch, matchStatusFilter]);
+  const visibleMatchOptions =
+    matchOptions.length > 0
+      ? matchOptions
+      : activeMatchesWithApiOdds.filter((match) => match.id === matchId);
   const selectedMatch =
     activeMatchesWithApiOdds.find((match) => match.id === matchId) ??
     activeMatchesWithApiOdds[0];
@@ -510,17 +553,43 @@ export function BankrollManager({
           <div className="mt-5 grid gap-4">
             <label className="grid gap-2 text-sm">
               <span className="text-muted">比赛</span>
+              <div className="grid gap-2 md:grid-cols-[1fr_160px]">
+                <input
+                  value={matchSearch}
+                  onChange={(event) => setMatchSearch(event.target.value)}
+                  placeholder="搜索球队或阶段，方便赛后补录"
+                  className="h-10 rounded-md border border-border bg-panel px-3 text-text outline-none placeholder:text-muted focus:border-accent"
+                />
+                <select
+                  value={matchStatusFilter}
+                  onChange={(event) =>
+                    setMatchStatusFilter(event.target.value as MatchStatusFilter)
+                  }
+                  className="h-10 rounded-md border border-border bg-panel px-3 text-text outline-none focus:border-accent"
+                >
+                  {matchStatusFilters.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <select
                 value={matchId}
                 onChange={(event) => setMatchId(event.target.value)}
                 className="h-10 rounded-md border border-border bg-panel px-3 text-text outline-none focus:border-accent"
               >
-                {activeMatchesWithApiOdds.map((match) => (
+                {visibleMatchOptions.map((match) => (
                   <option key={match.id} value={match.id}>
-                    {match.homeTeam} vs {match.awayTeam}
+                    {match.homeTeam} vs {match.awayTeam} ·{" "}
+                    {getMatchStatusLabel(match)} ·{" "}
+                    {formatFullDateTime(match.startTime)}
                   </option>
                 ))}
               </select>
+              <span className="text-xs leading-5 text-muted">
+                已结束比赛也会显示。赛后补录时可以把筛选切到“已结束”，再搜索球队名。
+              </span>
             </label>
 
             <div className="grid gap-2">
