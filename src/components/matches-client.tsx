@@ -52,7 +52,7 @@ export function MatchesClient({
       ),
     [matchesWithApiOdds, metrics.currentBankroll],
   );
-  const opportunities = getValueOpportunities(analyses);
+  const opportunities = getValueOpportunities(analyses, { withinHours: 48 });
 
   const filteredAnalyses = analyses.filter((analysis) => {
     const text = `${analysis.match.homeTeam} ${analysis.match.awayTeam}`.toLowerCase();

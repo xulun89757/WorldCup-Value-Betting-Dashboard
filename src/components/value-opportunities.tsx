@@ -22,9 +22,11 @@ export function ValueOpportunities({
     return (
       <section className="rounded-md border border-border bg-surface p-5">
         <h2 className="text-base font-semibold text-text">
-          今日价值机会
+          48小时内价值机会
         </h2>
-        <p className="mt-4 text-sm text-muted">今天暂无价值机会</p>
+        <p className="mt-4 text-sm text-muted">
+          未来 48 小时暂无价值机会
+        </p>
       </section>
     );
   }
@@ -33,7 +35,7 @@ export function ValueOpportunities({
     <section className="rounded-md border border-border bg-surface">
       <div className="border-b border-border p-5">
         <h2 className="text-base font-semibold text-text">
-          今日价值机会
+          48小时内价值机会
         </h2>
       </div>
       <div className="divide-y divide-border">

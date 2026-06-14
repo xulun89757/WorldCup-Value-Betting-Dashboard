@@ -100,7 +100,32 @@ export function analyzeMatch(match: Match, bankroll: number): MatchAnalysis {
   };
 }
 
-export function getValueOpportunities(analyses: MatchAnalysis[]) {
+type ValueOpportunityOptions = {
+  withinHours?: number;
+  now?: Date;
+};
+
+function isWithinUpcomingHours(
+  match: Match,
+  withinHours: number,
+  now = new Date(),
+) {
+  const matchTime = new Date(match.startTime).getTime();
+
+  if (!Number.isFinite(matchTime)) {
+    return false;
+  }
+
+  const nowTime = now.getTime();
+  const maxTime = nowTime + withinHours * 60 * 60 * 1000;
+
+  return matchTime >= nowTime && matchTime <= maxTime;
+}
+
+export function getValueOpportunities(
+  analyses: MatchAnalysis[],
+  options: ValueOpportunityOptions = {},
+) {
   const riskRank: Record<RiskLevel, number> = {
     low: 0,
     medium: 1,
@@ -113,6 +138,15 @@ export function getValueOpportunities(analyses: MatchAnalysis[]) {
         match: analysis.match,
         ...selection,
       })),
+    )
+    .filter((selection) =>
+      options.withinHours == null
+        ? true
+        : isWithinUpcomingHours(
+            selection.match,
+            options.withinHours,
+            options.now,
+          ),
     )
     .filter((selection) => selection.valueEdge > 0)
     .sort((a, b) => {

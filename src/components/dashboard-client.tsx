@@ -51,7 +51,7 @@ export function DashboardClient({
   const analyses = matchesWithApiOdds.map((match) =>
     analyzeMatch(match, metrics.currentBankroll),
   );
-  const opportunities = getValueOpportunities(analyses);
+  const opportunities = getValueOpportunities(analyses, { withinHours: 48 });
   const topOpportunity = opportunities[0];
 
   return (
@@ -85,7 +85,7 @@ export function DashboardClient({
             <p className="leading-6">
               {topOpportunity
                 ? `先查看 ${topOpportunity.match.homeTeam} vs ${topOpportunity.match.awayTeam}，它目前排在价值机会第一位。`
-                : "今天暂时没有正向价值机会，可以先查看比赛页熟悉数据。"}
+                : "未来 48 小时暂时没有正向价值机会，可以先查看比赛页熟悉数据。"}
             </p>
             <Link
               href={topOpportunity ? `/matches/${topOpportunity.match.id}` : "/matches"}
@@ -128,7 +128,7 @@ export function DashboardClient({
           icon={Activity}
         />
         <StatCard
-          label="价值机会"
+          label="48小时机会"
           value={String(opportunities.length)}
           icon={Gauge}
           tone="positive"
